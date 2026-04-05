@@ -1,0 +1,54 @@
+bundle:
+  name: databricks-jar-job
+
+include:
+  - resources/*.yml
+
+variables:
+  # Cluster configuration
+  spark_version:
+    description: Databricks Runtime version
+    default: "14.3.x-scala2.12"
+  
+  node_type_id:
+    description: Node type for the cluster
+    default: "i3.xlarge"
+  
+  num_workers:
+    description: Number of worker nodes
+    default: 2
+
+# Workspace configuration
+# Note: Configure host via Databricks CLI profile or DATABRICKS_HOST env var
+workspace:
+  root_path: "~/.bundle/${bundle.name}/${bundle.target}"
+
+targets:
+  # Development environment
+  dev:
+    mode: development
+    default: true
+    variables:
+      num_workers: 1
+      node_type_id: "i3.xlarge"
+  
+  # Staging environment
+  staging:
+    mode: production
+    workspace:
+      root_path: "~/.bundle/${bundle.name}/staging"
+    variables:
+      num_workers: 2
+  
+  # Production environment
+  prod:
+    mode: production
+    workspace:
+      root_path: "/Shared/.bundle/${bundle.name}/prod"
+    run_as:
+      # Run as a service principal in production
+      service_principal_name: ${var.service_principal_name}
+    variables:
+      num_workers: 4
+      node_type_id: "i3.2xlarge"
+

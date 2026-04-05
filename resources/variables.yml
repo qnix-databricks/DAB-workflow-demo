@@ -1,0 +1,31 @@
+variables:
+  # Notification settings
+  notification_email:
+    description: Email address for job notifications
+    default: "your-email@example.com"
+  
+  # Input/Output paths
+  input_path:
+    description: Input data path
+    default: "dbfs:/tmp/input/"
+  
+  output_path:
+    description: Output data path
+    default: "dbfs:/tmp/output/"
+  
+  # Service principal for production
+  service_principal_name:
+    description: Service principal name for production deployments
+    default: "databricks-jar-job-sp"
+
+  fat_jar:
+    description: "The FAT JAR" 
+    default: /Volumes/users/quan_ta/jars/databricks-jar-job-0.1.0.jar
+
+  environment_spec:
+    description: "Environment Spec" 
+    default:
+      environment_version: 4-scala-preview
+      java_dependencies:
+        - /Volumes/users/quan_ta/jars/databricks-jar-job-0.1.0.jar
+        # - ${var.fat_jar}

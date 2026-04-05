@@ -1,0 +1,162 @@
+name: Deploy to Databricks
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  validate:
+    name: Validate Bundle
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'sbt'
+      
+      - name: Compile code
+        run: sbt compile
+      
+      - name: Run tests
+        run: sbt test
+      
+      - name: Build JAR
+        run: sbt assembly
+      
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: databricks-jar
+          path: target/scala-2.12/databricks-jar-job-*.jar
+          retention-days: 7
+      
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+      
+      - name: Validate bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t dev
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: validate
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: databricks-jar
+          path: target/scala-2.12/
+      
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+      
+      - name: Deploy to Dev
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_DEV_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_DEV_TOKEN }}
+        run: |
+          databricks bundle deploy -t dev
+          echo "✅ Deployed to dev environment"
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: databricks-jar
+          path: target/scala-2.12/
+      
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+      
+      - name: Deploy to Staging
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_STAGING_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_STAGING_TOKEN }}
+        run: |
+          databricks bundle deploy -t staging
+          echo "✅ Deployed to staging environment"
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: databricks-jar
+          path: target/scala-2.12/
+      
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+      
+      - name: Deploy to Production
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_PROD_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_PROD_TOKEN }}
+        run: |
+          databricks bundle validate -t prod
+          databricks bundle deploy -t prod
+          echo "✅ Deployed to production environment"
+      
+      - name: Create GitHub Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release-${{ github.run_number }}
+          release_name: Production Release ${{ github.run_number }}
+          body: |
+            Deployed to production
+            Commit: ${{ github.sha }}
+          draft: false
+          prerelease: false
+

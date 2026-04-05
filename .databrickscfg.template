@@ -1,0 +1,26 @@
+# Databricks CLI configuration template
+# Copy this file to ~/.databrickscfg and fill in your credentials
+
+[DEFAULT]
+host = https://<your-workspace>.cloud.databricks.com
+token = <your-personal-access-token>
+
+[dev]
+host = https://<your-dev-workspace>.cloud.databricks.com
+token = <your-dev-token>
+
+[staging]
+host = https://<your-staging-workspace>.cloud.databricks.com
+token = <your-staging-token>
+
+[prod]
+host = https://<your-prod-workspace>.cloud.databricks.com
+token = <your-prod-token>
+
+# How to get your token:
+# 1. Go to your Databricks workspace
+# 2. Click on your user icon (top right)
+# 3. Go to User Settings
+# 4. Click on Developer > Access tokens
+# 5. Generate new token
+

@@ -1,0 +1,132 @@
+resources:
+  jobs:
+    Workflow_Demo:
+      name: "Workflow Demo"
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: StarterDriver
+          notebook_task:
+            notebook_path: notebooks/StarterDriver
+            source: GIT
+        - task_key: PythonTaskMain
+          depends_on:
+            - task_key: StarterDriver
+          notebook_task:
+            notebook_path: notebooks/PythonTaskMain
+            source: GIT
+            base_parameters:
+              runDate: "{{tasks.StarterDriver.values.runDate}}"
+              outputEnvironment: "{{tasks.StarterDriver.values.outputEnvironment}}"
+              overwrite: "{{tasks.StarterDriver.values.overwrite}}"
+              appConfig: "{{tasks.StarterDriver.values.appConfig}}"
+          job_cluster_key: Job_cluster
+          libraries:
+            - pypi:
+                package: PyYAML==6.0.2
+            - whl: /Volumes/users/quan_ta/wheels/charter_utils-0.1.0-py3-none-any.whl
+        - task_key: TaskOne
+          depends_on:
+            - task_key: StarterDriver
+          spark_jar_task:
+            jar_uri: ""
+            main_class_name: com.databricks.job.SimpleJob
+            parameters:
+              - --runDate
+              - "{{tasks.StarterDriver.values.runDate}}"
+              - --outputEnvironment
+              - "{{tasks.StarterDriver.values.outputEnvironment}}"
+              - --overwrite
+              - "{{tasks.StarterDriver.values.overwrite}}"
+              - --appConfig
+              - "{{tasks.StarterDriver.values.appConfig}}"
+              - --jobRunDate
+              - "{{job.parameters.workflow_runDate}}"
+            run_as_repl: true
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+          environment_key: TaskOne_environment
+        - task_key: TaskThree
+          depends_on:
+            - task_key: TaskOne
+          spark_jar_task:
+            jar_uri: ""
+            main_class_name: com.databricks.job.ExampleJob
+            parameters:
+              - --runDate
+              - "{{tasks.StarterDriver.values.runDate}}"
+              - --outputEnvironment
+              - "{{tasks.StarterDriver.values.outputEnvironment}}"
+              - --overwrite
+              - "{{tasks.StarterDriver.values.overwrite}}"
+              - --appConfig
+              - "{{tasks.StarterDriver.values.appConfig}}"
+              - --jobRunDate
+              - "{{job.parameters.workflow_runDate}}"
+            run_as_repl: true
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+          environment_key: TaskOne_environment
+        - task_key: TaskTwo
+          depends_on:
+            - task_key: StarterDriver
+          spark_jar_task:
+            jar_uri: ""
+            main_class_name: com.databricks.job.ExampleJob
+            parameters:
+              - --runDate
+              - "{{tasks.StarterDriver.values.runDate}}"
+              - --outputEnvironment
+              - "{{tasks.StarterDriver.values.outputEnvironment}}"
+              - --overwrite
+              - "{{tasks.StarterDriver.values.overwrite}}"
+              - --appConfig
+              - "{{tasks.StarterDriver.values.appConfig}}"
+              - --jobRunDate
+              - "{{job.parameters.workflow_runDate}}"
+            run_as_repl: true
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+          environment_key: TaskOne_environment
+      job_clusters:
+        - job_cluster_key: Job_cluster
+          new_cluster:
+            spark_version: 17.3.x-scala2.13
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+            enable_elastic_disk: true
+            data_security_mode: DATA_SECURITY_MODE_DEDICATED
+            runtime_engine: PHOTON
+            kind: CLASSIC_PREVIEW
+            is_single_node: false
+            autoscale:
+              min_workers: 1
+              max_workers: 8
+      tags:
+        dev: quan_ta
+      queue:
+        enabled: true
+      parameters:
+        - name: configPath
+          default: /Volumes/users/quan_ta/config/app_conf.json
+        - name: env
+          default: dev
+        - name: workflow_runDate
+          default: "{{job.start_time.iso_date}}"
+      run_as:
+        user_name: quan.ta@databricks.com
+      environments:
+        - environment_key: TaskOne_environment
+          spec:
+            environment_version: "5"
+            java_dependencies:
+              - /Volumes/users/quan_ta/jars/workflow-demo-0.1.0.jar
+      performance_target: PERFORMANCE_OPTIMIZED
+      git_source:
+        git_url: https://github.com/qnix-databricks/DAB-workflow-demo.git
+        git_provider: gitHub
+        git_branch: main

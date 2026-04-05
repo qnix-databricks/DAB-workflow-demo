@@ -1,0 +1,71 @@
+# SBT
+target/
+project/target/
+project/project/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+.cache-main
+.cache-tests
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Mac
+.DS_Store
+
+# Metals (VS Code Scala)
+.metals/
+.bloop/
+metals.sbt
+
+# Build artifacts
+*.jar
+*.class
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+
+# Databricks
+.databricks/
+.databrickscfg
+*.bundle.tf.json
+
+# Python
+__pycache__/
+*.py[codz]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+*.egg
+python/build/
+python/dist/
+python/**/*.egg-info/
+
+# Environments
+.env
+.envrc
+.venv
+venv/
+
+# Metals / BSP
+.bsp/
+
+/apm0011759-iqi-26015-iq-insights-databricks-core/
+*.gpg
+/.vscode/

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scalastyle>
+  <name>Scalastyle configuration</name>
+  
+  <!-- Disallow wildcard imports (underscore imports) -->
+  <!-- This will flag imports like: import scala.collection._ -->
+  <check level="error" class="org.scalastyle.scalariform.UnderscoreImportChecker" enabled="true">
+    <parameters>
+      <!-- Allow spark.implicits._ as it's necessary for Spark -->
+      <parameter name="ignoreRegex">spark\.implicits\._</parameter>
+    </parameters>
+    <customMessage>Wildcard imports are not allowed. Use explicit imports instead.</customMessage>
+  </check>
+  
+  <!-- Ensure imports are organized properly -->
+  <check level="warning" class="org.scalastyle.scalariform.ImportOrderChecker" enabled="true">
+    <parameters>
+      <parameter name="groups">java,scala,others</parameter>
+      <parameter name="group.java">javax?\..+</parameter>
+      <parameter name="group.scala">scala\..+</parameter>
+      <parameter name="group.others">.+</parameter>
+    </parameters>
+  </check>
+  
+  <!-- Prevent multiple blank lines -->
+  <check level="warning" class="org.scalastyle.file.FileLineLengthChecker" enabled="true">
+    <parameters>
+      <parameter name="maxLineLength">200</parameter>
+      <parameter name="tabSize">2</parameter>
+      <parameter name="ignoreImports">true</parameter>
+    </parameters>
+  </check>
+  
+  <!-- File header check (optional - customize for your org) -->
+  <check level="warning" class="org.scalastyle.file.HeaderMatchesChecker" enabled="false">
+    <parameters>
+      <parameter name="header">// Copyright (C) 2024</parameter>
+    </parameters>
+  </check>
+  
+  <!-- Other useful checks -->
+  <check level="warning" class="org.scalastyle.scalariform.SpacesAfterPlusChecker" enabled="true"/>
+  <check level="warning" class="org.scalastyle.scalariform.SpacesBeforePlusChecker" enabled="true"/>
+  <check level="warning" class="org.scalastyle.file.WhitespaceEndOfLineChecker" enabled="true"/>
+  <check level="warning" class="org.scalastyle.file.FileTabChecker" enabled="false"/>
+  
+</scalastyle>
+
