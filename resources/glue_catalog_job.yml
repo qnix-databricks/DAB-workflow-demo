@@ -22,6 +22,7 @@ resources:
               first_on_demand: 1
               availability: SPOT_WITH_FALLBACK
               zone_id: auto
+              instance_profile_arn: ${var.glue_instance_profile_arn}
             data_security_mode: SINGLE_USER
       tags:
         team: data-engineering
