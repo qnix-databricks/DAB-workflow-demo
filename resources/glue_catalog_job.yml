@@ -1,0 +1,32 @@
+resources:
+  jobs:
+    Glue_Catalog_Legacy_Demo:
+      name: "Glue Catalog Legacy Integration Demo"
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: glue_catalog_legacy_integration
+          notebook_task:
+            notebook_path: ../notebooks/glue_catalog_legacy_integration.py
+            source: WORKSPACE
+          job_cluster_key: glue_cluster
+      job_clusters:
+        - job_cluster_key: glue_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: i3.xlarge
+            num_workers: ${var.num_workers}
+            spark_conf:
+              # Legacy Glue Catalog integration
+              spark.databricks.hive.metastore.glueCatalog.enabled: "true"
+            aws_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK
+              zone_id: auto
+            data_security_mode: SINGLE_USER
+      tags:
+        team: data-engineering
+        integration: glue-catalog
+      queue:
+        enabled: true
+      run_as:
+        user_name: quan.ta@databricks.com

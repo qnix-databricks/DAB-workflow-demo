@@ -18,6 +18,11 @@ variables:
     description: Service principal name for production deployments
     default: "databricks-jar-job-sp"
 
+  # AWS Glue integration
+  glue_instance_profile_arn:
+    description: "IAM instance profile ARN with Glue catalog and S3 permissions"
+    default: "arn:aws:iam::instance-profile/"
+
   fat_jar:
     description: "The FAT JAR" 
     default: /Volumes/users/quan_ta/jars/databricks-jar-job-0.1.0.jar
