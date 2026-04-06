@@ -23,6 +23,11 @@ variables:
     description: "Optional IAM instance profile ARN with Glue catalog and S3 permissions"
     default: ""
 
+  # Backfill job settings
+  backfill_env:
+    description: "Target environment for backfill jobs (dev/staging/prod)"
+    default: "dev"
+
   fat_jar:
     description: "The FAT JAR" 
     default: /Volumes/users/quan_ta/jars/databricks-jar-job-0.1.0.jar

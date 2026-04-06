@@ -1,0 +1,58 @@
+resources:
+  jobs:
+    Backfill_Pipeline_Demo:
+      name: "Backfill Pipeline Demo (for_each_task)"
+      max_concurrent_runs: 1
+      tasks:
+        # Task 1: Generate the list of dates to backfill
+        - task_key: generate_dates
+          notebook_task:
+            notebook_path: ../notebooks/generate_backfill_dates.py
+            source: WORKSPACE
+          job_cluster_key: backfill_cluster
+
+        # Task 2: Fan out — runs backfill_job once per date in parallel
+        - task_key: backfill
+          depends_on:
+            - task_key: generate_dates
+          for_each_task:
+            inputs: "{{tasks.generate_dates.values.date_list}}"
+            task:
+              task_key: backfill_single_date
+              notebook_task:
+                notebook_path: ../notebooks/backfill_job.py
+                source: WORKSPACE
+                base_parameters:
+                  run_date: "{{input}}"
+                  env: "${var.backfill_env}"
+              job_cluster_key: backfill_cluster
+
+      job_clusters:
+        - job_cluster_key: backfill_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: i3.xlarge
+            num_workers: 1
+            aws_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK
+              zone_id: auto
+            data_security_mode: SINGLE_USER
+
+      parameters:
+        - name: start_date
+          default: ""
+        - name: end_date
+          default: ""
+        - name: step_days
+          default: "1"
+
+      tags:
+        team: data-engineering
+        pattern: backfill
+
+      queue:
+        enabled: true
+
+      run_as:
+        user_name: quan.ta@databricks.com
